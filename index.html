@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f8f5">
+  <meta name="description" content="The Swansea ISOC discount guide. Browse ISOC card offers and general student discounts, with clear instructions on how to claim.">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta property="og:title" content="Your card. Your Swansea. — Swansea ISOC">
+  <meta property="og:description" content="ISOC card offers and general student savings, all in one place.">
+  <meta property="og:type" content="website">
+  <title>Discount guide · Swansea ISOC</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/isoc-emblem.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="offers.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#directory">Skip to discounts</a>
+  <div id="preview-banner" class="preview-banner" hidden>
+    <div class="wrap preview-inner"><span><strong>Committee preview</strong><span class="preview-long"> · Unconfirmed offers are marked for review.</span></span><button type="button" id="public-preview">See public view <span aria-hidden="true">↗</span></button></div>
+  </div>
+  <header class="masthead wrap" id="top">
+    <a class="brand" href="#top" aria-label="Swansea ISOC, back to top">
+      <img src="assets/isoc-emblem.png" alt="" width="56" height="56">
+      <span class="brand-name">SWANSEA <strong>ISOC</strong><small>THE DISCOUNT GUIDE</small></span>
+    </a>
+    <div class="masthead-right"><span class="edition" id="edition">2026 / 27</span><a href="#using-your-card">Using your card <span aria-hidden="true">↗</span></a></div>
+  </header>
+  <main>
+    <section class="intro wrap" aria-labelledby="page-title">
+      <div class="intro-copy"><p class="eyebrow"><span class="tiny-diamond" aria-hidden="true"></span> AROUND SWANSEA</p><h1 id="page-title">Your card.<br> <em>Your Swansea.</em></h1><p class="intro-note">ISOC exclusives and student savings.<br> Find an offer. Check the details. Take your card.</p></div>
+      <div class="card-display" aria-hidden="true">
+        <div class="member-card"><div class="card-top"><span>SWANSEA ISOC</span><span>MEMBER BENEFITS</span></div><img src="assets/isoc-emblem.png" class="card-emblem" alt="" width="146" height="146"><div class="card-bottom"><span>Discount<br> <em>card.</em></span><span class="card-year">26<br> <span>27</span></span></div></div>
+        <p class="card-caption">A small card. A local connection.</p>
+      </div>
+    </section>
+    <section id="directory" class="directory wrap" aria-label="Discount directory">
+      <div class="directory-nav"><nav aria-label="Offer sections"><a href="#exclusive" class="nav-link">ISOC exclusives <span id="nav-exclusive-count" class="nav-count">—</span></a><a href="#general" class="nav-link">Student discounts <span id="nav-general-count" class="nav-count">—</span></a></nav><button class="saved-toggle" type="button" id="saved-toggle" aria-pressed="false"><span class="bookmark-icon" aria-hidden="true"></span><span>Saved</span> <span id="saved-count">0</span></button></div>
+      <div class="search-row"><div class="search-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 5 5" stroke="currentColor" stroke-width="1.7"/></svg><label class="sr-only" for="search">Search businesses, areas or offers</label><input id="search" type="search" autocomplete="off" placeholder="Find a place, offer or area…"><button type="button" id="clear-search" hidden aria-label="Clear search">×</button></div><div id="category-filters" class="category-filters" role="group" aria-label="Filter by category"></div></div>
+      <p id="result-summary" class="result-summary" aria-live="polite" role="status"></p>
+      <div id="load-error" class="empty-state" hidden><h2>The offers couldn’t load.</h2><p>Please refresh the page. If you are opening a downloaded copy, keep <strong>offers.js</strong> and <strong>app.js</strong> next to <strong>index.html</strong>.</p></div>
+      <section id="exclusive" class="offer-section" aria-labelledby="exclusive-heading"><div class="section-label"><span class="section-number">01</span><h2 id="exclusive-heading">ISOC<br> exclusives.</h2><p>For our cardholders.<br> Show your ISOC card<br class="desktop-break">  before you pay.</p><span class="section-tag">YOUR ISOC CARD</span></div><div id="exclusive-offers" class="offer-list"></div></section>
+      <section id="general" class="offer-section" aria-labelledby="general-heading"><div class="section-label"><span class="section-number">02</span><h2 id="general-heading">Student<br> discounts.</h2><p>Available to students generally.<br> Check the ID or account<br class="desktop-break">  each offer needs.</p><span class="section-tag general-tag">NOT ISOC EXCLUSIVE</span></div><div id="general-offers" class="offer-list"></div></section>
+      <div id="no-results" class="empty-state" hidden><span class="empty-mark" aria-hidden="true">↳</span><h2 id="empty-title">Nothing here just yet.</h2><p id="empty-text">Try another search or category.</p><button type="button" class="text-button" id="reset-filters">Show all offers <span aria-hidden="true">↗</span></button></div>
+      <p class="directory-footnote">Offers can change. Check the current terms with the business before ordering or paying. This page is a guide, not proof of ISOC membership.</p>
+    </section>
+    <section id="using-your-card" class="how-section wrap" aria-labelledby="how-heading"><div><p class="eyebrow">A QUICK NOTE</p><h2 id="how-heading">Before you head out.</h2></div><div class="how-content"><div class="how-steps"><div><span class="step-number">01</span><h3>Pick your offer</h3><p>ISOC exclusive or a general student deal? The claim method is shown on every listing.</p></div><div><span class="step-number">02</span><h3>Bring the right card</h3><p>Show your ISOC discount card for exclusive offers. Other deals may need student ID or a verified account.</p></div><div><span class="step-number">03</span><h3>Ask before you pay</h3><p>Check the branch and any exclusions. Confirm the discount before placing your order.</p></div></div><div class="faq-list"><details><summary>Is this a digital membership card?</summary><p>No. This is the directory linked from your card’s QR code. It doesn’t verify membership or replace your ISOC discount card. Ask the committee about obtaining a card.</p></details><details><summary>What about halal information?</summary><p>Food offers should only be published once the committee has checked the specific venue. Where relevant, the offer details show the basis for that check. A listing is not a halal certificate. Please ask the venue about current ingredients, preparation and any dietary requirements.</p></details><details><summary>Do I need an account to use this page?</summary><p>No. You can browse without signing in. Saved offers stay in this browser on this device, not in an ISOC account. External providers such as Student Beans may require their own sign-in.</p></details><details><summary>An offer has changed. Who do I tell?</summary><p>Please tell an ISOC committee member which business you visited and what changed. Include the date so the listing can be checked. The committee can update this page without changing the QR code.</p></details></div></div></section>
+  </main>
+  <footer class="site-footer wrap"><div class="footer-brand"><img src="assets/isoc-emblem.png" alt="" width="35" height="35"><span>SWANSEA ISOC<small>A little more, together.</small></span></div><div class="footer-meta"><span id="updated-label"></span><span>No sign-in. No membership details stored here.</span></div><a href="#top" class="back-top">Back to top <span aria-hidden="true">↑</span></a></footer>
+  <noscript><div class="wrap no-script"><h2>Turn on JavaScript to browse the directory.</h2><p>No account is needed. JavaScript is used to display and filter the offers. Speak to the committee if you need the list in another format.</p></div></noscript>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
