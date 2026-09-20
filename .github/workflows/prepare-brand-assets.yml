@@ -1,0 +1,41 @@
+name: Prepare directory logos
+on:
+  push:
+    branches: [discounts-redesign]
+    paths: ['.github/workflows/prepare-brand-assets.yml']
+permissions:
+  contents: write
+jobs:
+  logos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download logos
+        shell: python
+        run: |
+          import urllib.request, pathlib, json
+          root = pathlib.Path('logos'); root.mkdir(exist_ok=True)
+          urls = {
+            'wokway.jpg': 'https://raw.githubusercontent.com/maroneaosman-rgb/ISOC-Discount/main/Wokway.jpg',
+            'aces.jpg': 'https://raw.githubusercontent.com/maroneaosman-rgb/ISOC-Discount/main/Ace%27s.jpg',
+            'kaspas.png': 'https://raw.githubusercontent.com/maroneaosman-rgb/ISOC-Discount/main/Kaspas.png',
+            'boots.svg': 'https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/boots.svg'
+          }
+          for name, url in urls.items():
+            request = urllib.request.Request(url, headers={'User-Agent': 'Swansea-ISOC-directory'})
+            with urllib.request.urlopen(request, timeout=30) as response:
+              data = response.read()
+            if len(data) < 100 or b'<html' in data[:500].lower():
+              raise RuntimeError('Invalid image ' + name)
+            (root / name).write_bytes(data)
+          (root/'sources.json').write_text(json.dumps(urls, indent=2))
+      - name: Commit logos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add logos
+          git diff --cached --quiet || (git commit -m "Add ISOC business logos" && git push)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: directory-logos
+          path: logos/

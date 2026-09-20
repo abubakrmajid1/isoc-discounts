@@ -1,0 +1,44 @@
+name: Check discount directory
+on:
+  push:
+    branches: [discounts-redesign]
+    paths: ['.github/workflows/check-directory.yml', 'tools/**']
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install tools
+        run: |
+          pip install beautifulsoup4 pillow cairosvg playwright
+          playwright install --with-deps chromium
+      - name: Fetch remaining brand logos
+        run: python tools/prepare_logos.py
+      - name: Commit brand assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add logos
+          git diff --cached --quiet || (git commit -m "Add retailer logos from official and offer-provider sources" && git push)
+      - name: Browser checks
+        run: python tools/test_directory.py
+      - name: Package website
+        run: |
+          mkdir -p website-package
+          cp index.html directory.css directory.js directory-data.js favicon.png isoc-emblem.png isoc-logo.png .nojekyll website-package/
+          cp -r logos website-package/
+          cp README.md website-package/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: redesigned-site-and-checks
+          path: |
+            site-checks/
+            logos/
+            website-package/
+          retention-days: 7
