@@ -15,7 +15,7 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
 server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), partial(Quiet, directory=str(root)))
 threading.Thread(target=server.serve_forever, daemon=True).start()
 base = f'http://127.0.0.1:{server.server_port}/index.html'
-expected = {'wokway': '15%', 'aces': '15%', 'cha-cha': '10%', 'dfc': '20%', 'hello-asia': '15%', 'velvet-green': '25%', 'jerk-hut': '7%', 'foundry': '20%', 'zazah': '10%'}
+expected = {'wokway': '15%', 'cha-cha': '10%', 'dfc': '20%', 'hello-asia': '15%', 'velvet-green': '25%', 'jerk-hut': '7%', 'foundry': '20%', 'zazah': '10%'}
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -27,7 +27,7 @@ try:
         page.route('https://fonts.gstatic.com/**', lambda route: route.abort())
         page.set_viewport_size({'width': 390, 'height': 844})
         page.goto(base, wait_until='networkidle')
-        expect(page.locator('.offer')).to_have_count(9)
+        expect(page.locator('.offer')).to_have_count(8)
         expect(page.locator('[data-kind=card]')).to_have_attribute('aria-pressed', 'true')
         assert page.locator('[data-kind=all]').count() == 0
         assert page.locator('.pending').count() == 0
@@ -39,9 +39,17 @@ try:
         page.evaluate('Promise.all([...document.images].map(i=>i.decode().catch(()=>null)))')
         broken = page.locator('.logo-box img').evaluate_all('(imgs)=>imgs.filter(i=>!i.complete||i.naturalWidth===0).map(i=>i.src)')
         assert not broken, broken
-        assert page.locator('.offer .logo-box img').count() == 7
-        assert page.locator('#place-jerk-hut .logo-fallback').is_visible()
-        assert page.locator('#place-foundry .logo-fallback').is_visible()
+        assert page.locator('.offer .logo-box img').count() == 8
+        assert page.locator('#place-jerk-hut .logo-box img').is_visible()
+        assert page.locator('#place-foundry .logo-box img').is_visible()
+        assert page.locator('#place-aces').count() == 0
+        for partner, target in [('jerk-hut','https://jerk-hut.co.uk/'),('foundry','https://thefoundrycafekitchen.co.uk/')]:
+            page.locator(f'[data-offer="{partner}"]').click()
+            assert page.locator('#offer-dialog a').evaluate_all('(els)=>els.map(a=>a.href)').count(target) >= 1
+            if partner == 'jerk-hut':
+                assert page.locator('#offer-dialog a', has_text='Order online').get_attribute('href') == 'https://jerk-hut.co.uk/#menu'
+                assert 'SWANSEAISOC' in page.locator('#offer-dialog').inner_text()
+            page.keyboard.press('Escape')
         for width in [320, 360, 390, 430, 768, 1440]:
             page.set_viewport_size({'width': width, 'height': 900})
             assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth'), f'Overflow at {width}'
@@ -63,7 +71,7 @@ try:
         page.locator('[data-kind=student]').click()
         expect(page.locator('.offer')).to_have_count(4)
         page.locator('[data-kind=card]').click()
-        expect(page.locator('.offer')).to_have_count(9)
+        expect(page.locator('.offer')).to_have_count(8)
         page.locator('#category').select_option('Food & drink')
         expect(page.locator('.offer')).to_have_count(7)
         page.locator('[data-kind=student]').click()
@@ -73,7 +81,7 @@ try:
         page.locator('[data-kind=saved]').click()
         expect(page.locator('.offer')).to_have_count(1)
         page.reload(wait_until='networkidle')
-        expect(page.locator('.offer')).to_have_count(9)
+        expect(page.locator('.offer')).to_have_count(8)
         expect(page.locator('#place-wokway [data-save]')).to_have_attribute('aria-pressed', 'true')
         for key in expected:
             page.locator(f'[data-offer="{key}"]').click()
@@ -83,7 +91,7 @@ try:
         expect(page.locator('#offer-dialog')).to_be_visible()
         assert 'DFC Swansea' in page.locator('#dialog-title').inner_text()
         assert not errors, errors
-        result = {'passed': True, 'cardOffers': 9, 'otherStudentOffers': 4, 'loadedPartnerLogos': 7, 'textFallbacks': ['Jerk Hut', 'Foundry'], 'viewports': [320, 360, 390, 430, 768, 1440], 'checks': ['default card view', 'exact benefit rates', 'Cha Cha restriction', 'card instructions', 'no horizontal overflow', 'seven logo loads', 'copy both codes', 'DFC minimum spend', 'DFC order URL', 'student tab', 'category switching', 'search', 'persistent saved items', 'nine dialogs', 'Escape close', 'deep link'], 'javascriptErrors': errors}
+        result = {'passed': True, 'cardOffers': 8, 'otherStudentOffers': 4, 'loadedPartnerLogos': 8, 'textFallbacks': [], 'viewports': [320, 360, 390, 430, 768, 1440], 'checks': ['default card view', 'exact benefit rates', 'Cha Cha restriction', 'card instructions', 'no horizontal overflow', 'eight logo loads', 'copy both codes', 'DFC minimum spend', 'DFC order URL', 'student tab', 'category switching', 'search', 'persistent saved items', 'eight dialogs', 'Escape close', 'deep link'], 'javascriptErrors': errors}
         (out / 'results.json').write_text(json.dumps(result, indent=2))
         print(json.dumps(result, indent=2))
         browser.close()
