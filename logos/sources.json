@@ -10,5 +10,13 @@
   "hello-asia.jpg": "https://raw.githubusercontent.com/maroneaosman-rgb/ISOC-Discount/main/Hello%20Asia.jpg",
   "velvet-green.jpg": "https://raw.githubusercontent.com/maroneaosman-rgb/ISOC-Discount/main/VelvetGreen.jpg",
   "zazah.png": "https://zazahbuffet.co.uk/images/logo-2.png",
-  "dfc.png": "https://www.dfcswansea.com/site/assets/images/uploads/xdfcswansea-logo.png.pagespeed.ic.Yf4HMOmqwN.png"
+  "dfc.png": "https://www.dfcswansea.com/site/assets/images/uploads/xdfcswansea-logo.png.pagespeed.ic.Yf4HMOmqwN.png",
+  "dfc-card.png": {
+    "source": "dfc.png",
+    "change": "Trim transparent margins only"
+  },
+  "velvet-green-card.png": {
+    "source": "velvet-green.jpg",
+    "change": "Crop empty screenshot borders; preserve original logo"
+  }
 }
