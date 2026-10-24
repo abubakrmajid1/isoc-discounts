@@ -1,0 +1,64 @@
+name: Check card benefits
+on:
+  push:
+    branches: [confirmed-card-benefits-20261024]
+    paths: ['.github/workflows/check-card-benefits.yml', 'tools/test_card_benefits.py']
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test tools
+        run: |
+          pip install pillow playwright
+          playwright install --with-deps chromium
+      - name: Trim empty borders from supplied partner logos
+        shell: python
+        run: |
+          from PIL import Image
+          from pathlib import Path
+          import json
+          root=Path('logos')
+          dfc=Image.open(root/'dfc.png').convert('RGBA')
+          box=dfc.getchannel('A').getbbox()
+          if not box: raise ValueError('Empty DFC logo')
+          dfc.crop(box).save(root/'dfc-card.png',optimize=True)
+          velvet=Image.open(root/'velvet-green.jpg')
+          if velvet.size != (1080,2340): raise ValueError('Unexpected Velvet Green source dimensions')
+          velvet=velvet.crop((38,669,1042,1659))
+          velvet.thumbnail((400,400))
+          velvet.save(root/'velvet-green-card.png',optimize=True)
+          sources=json.loads((root/'sources.json').read_text())
+          sources['dfc-card.png']={'source':'dfc.png','change':'Trim transparent margins only'}
+          sources['velvet-green-card.png']={'source':'velvet-green.jpg','change':'Crop empty screenshot borders; preserve original logo'}
+          (root/'sources.json').write_text(json.dumps(sources,indent=2))
+      - name: Check JavaScript syntax
+        run: |
+          node --check directory.js
+          node --check directory-data.js
+      - name: Test mobile and desktop behaviour
+        run: python tools/test_card_benefits.py
+      - name: Commit tested logo crops
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add logos/dfc-card.png logos/velvet-green-card.png logos/sources.json
+          git diff --cached --quiet || (git commit -m "Add tested, trimmed DFC and Velvet Green logos" && git push)
+      - name: Package published website files
+        run: |
+          mkdir -p website-package
+          cp index.html directory.css card-first.css directory.js directory-data.js favicon.png isoc-emblem.png isoc-logo.png .nojekyll website-package/
+          cp -r logos website-package/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: card-benefits-site-and-checks
+          path: |
+            card-benefits-checks/
+            website-package/
+          retention-days: 7
