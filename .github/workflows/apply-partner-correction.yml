@@ -1,0 +1,113 @@
+name: Verify partner logo correction
+on:
+  push:
+    branches: [partner-logo-correction-20261024]
+    paths: ['.github/workflows/apply-partner-correction.yml']
+permissions:
+  contents: write
+jobs:
+  correct:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install image and browser check tools
+        run: |
+          pip install pillow playwright
+          playwright install --with-deps chromium
+      - name: Apply scoped directory corrections
+        shell: python
+        run: |
+          import pathlib, json, urllib.request, io
+          from PIL import Image
+          logos = pathlib.Path('logos')
+          asset_sources = {
+            'jerk-hut.png': 'https://jerk-hut.co.uk/manus-storage/JERKHUTLOGO_4cd8b3e8.png',
+            'foundry.png': 'https://assets.foodhub.com/static/db9277e0bb7e4d106bf76df60d7a5cf0/img/1787248342phpLcK1zG.jpg'
+          }
+          for filename, url in asset_sources.items():
+            req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=35) as response: raw = response.read()
+            image = Image.open(io.BytesIO(raw)).convert('RGBA')
+            assert image.width >= 200 and image.height >= 200, filename
+            image.thumbnail((512,512), Image.Resampling.LANCZOS)
+            image.save(logos/filename, optimize=True)
+          (logos/'partner-correction-sources.json').write_text(json.dumps({'checked':'2026-10-24','sources':asset_sources,'websites':{'jerk-hut':'https://jerk-hut.co.uk/','foundry':'https://thefoundrycafekitchen.co.uk/'}},indent=2)+'\n')
+          path = pathlib.Path('directory-data.js')
+          original = path.read_text()
+          lines = original.splitlines()
+          updated = []; changed = set()
+          for line in lines:
+            value = line.strip()
+            if value.startswith('{"id":'):
+              item = json.loads(value.rstrip(','))
+              if item['id'] == 'aces':
+                changed.add('aces'); continue
+              if item['id'] == 'jerk-hut':
+                item.update(logo='logos/jerk-hut.png', website='https://jerk-hut.co.uk/', locationUrl='https://jerk-hut.co.uk/', onlineUrl='https://jerk-hut.co.uk/#menu')
+                changed.add('jerk-hut')
+                line = ' '+json.dumps(item,ensure_ascii=False,separators=(',',':'))+(',' if value.endswith(',') else '')
+              elif item['id'] == 'foundry':
+                item.update(logo='logos/foundry.png', website='https://thefoundrycafekitchen.co.uk/', locationUrl='https://thefoundrycafekitchen.co.uk/', category='Food & drink', food=True)
+                changed.add('foundry')
+                line = ' '+json.dumps(item,ensure_ascii=False,separators=(',',':'))+(',' if value.endswith(',') else '')
+            updated.append(line)
+          assert changed == {'aces','jerk-hut','foundry'}, changed
+          path.write_text('\n'.join(updated)+'\n')
+          index = pathlib.Path('index.html'); text = index.read_text()
+          assert 'directory-data.js?v=20261024' in text
+          index.write_text(text.replace('directory-data.js?v=20261024','directory-data.js?v=20261024r2'))
+          test = pathlib.Path('tools/test_card_benefits.py'); text = test.read_text()
+          replacements = {
+            "'aces': '15%', ": '',
+            '.to_have_count(9)': '.to_have_count(8)',
+            "page.locator('.offer .logo-box img').count() == 7": "page.locator('.offer .logo-box img').count() == 8",
+            "assert page.locator('#place-jerk-hut .logo-fallback').is_visible()": "assert page.locator('#place-jerk-hut .logo-box img').is_visible()",
+            "assert page.locator('#place-foundry .logo-fallback').is_visible()": "assert page.locator('#place-foundry .logo-box img').is_visible()",
+            "'cardOffers': 9": "'cardOffers': 8",
+            "'loadedPartnerLogos': 7": "'loadedPartnerLogos': 8",
+            "'textFallbacks': ['Jerk Hut', 'Foundry']": "'textFallbacks': []",
+            "'seven logo loads'": "'eight logo loads'",
+            "'nine dialogs'": "'eight dialogs'"
+          }
+          for old,new in replacements.items():
+            assert old in text, 'Missing expected test text: '+old
+            text=text.replace(old,new)
+          marker = "        for width in [320, 360, 390, 430, 768, 1440]:"
+          extra = """        assert page.locator('#place-aces').count() == 0
+                  for partner, target in [('jerk-hut','https://jerk-hut.co.uk/'),('foundry','https://thefoundrycafekitchen.co.uk/')]:
+                      page.locator(f'[data-offer="{partner}"]').click()
+                      assert page.locator('#offer-dialog a').evaluate_all('(els)=>els.map(a=>a.href)').count(target) >= 1
+                      if partner == 'jerk-hut':
+                          assert page.locator('#offer-dialog a', has_text='Order online').get_attribute('href') == 'https://jerk-hut.co.uk/#menu'
+                          assert 'SWANSEAISOC' in page.locator('#offer-dialog').inner_text()
+                      page.keyboard.press('Escape')
+          """
+          import textwrap
+          extra = '\n'.join(line[10:] if line.startswith('                  ') else line for line in extra.splitlines())
+          text=text.replace(marker,extra+'\n'+marker)
+          test.write_text(text)
+          print('Updated Ace\'s removal, two official logos, two websites and Jerk Hut ordering link. Other benefits preserved.')
+      - name: Check code syntax
+        run: |
+          node --check directory-data.js
+          node --check directory.js
+          python -m py_compile tools/test_card_benefits.py
+      - name: Test eight offers and phone layouts
+        run: python tools/test_card_benefits.py
+      - name: Commit verified correction
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add directory-data.js index.html logos/jerk-hut.png logos/foundry.png logos/partner-correction-sources.json tools/test_card_benefits.py
+          git diff --cached --quiet || (git commit -m "Remove Ace's and add official Jerk Hut and Foundry logos and links" && git push)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: partner-correction-checks
+          path: |
+            card-benefits-checks/
+            logos/jerk-hut.png
+            logos/foundry.png
+            directory-data.js
+            tools/test_card_benefits.py
+          retention-days: 7
