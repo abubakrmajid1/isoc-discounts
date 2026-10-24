@@ -11,7 +11,6 @@ The committee confirmed these offers on 24 October 2026. Show an ISOC discount c
 | Partner | Card benefit | Additional condition |
 | --- | --- | --- |
 | Wokway | 15% off | |
-| Ace’s Desserts | 15% off | Retained existing offer |
 | Cha Cha Stall | 10% off | One drink and a food item, or a meal deal |
 | DFC Swansea | 20% off | Orders **over £25**; online code `ISOC123` |
 | Hello Asia | 15% off | |
@@ -20,9 +19,11 @@ The committee confirmed these offers on 24 October 2026. Show an ISOC discount c
 | Foundry | 20% off | |
 | Zazah Buffet | 10% off | |
 
+Ace’s Desserts was removed following the committee’s report that it has closed.
+
 Discount rates and conditions are supplied by the committee, not inferred from a public promotion. The website opens on **ISOC card**; unrelated student offers have a separate tab. Codes can be copied from the listing or offer details.
 
-Seven partner logos are available. Jerk Hut and Foundry use an honest text fallback until their exact official logos and Swansea business links can be verified. The online order link is verified for DFC; the Jerk Hut code is shown without inventing an ordering website. Directions appear only where a specific address is recorded.
+All eight current partners have logos. The Jerk Hut and Foundry logos were obtained from the official websites supplied by the committee: https://jerk-hut.co.uk/ and https://thefoundrycafekitchen.co.uk/. The downloaded images are stored locally so temporary image URLs do not expire on the directory. Their source records are in `logos/partner-correction-sources.json`. Jerk Hut’s order button points to its official menu. Directions appear only where a specific address is recorded.
 
 ## Change an offer
 
@@ -58,6 +59,6 @@ The legacy `offers.js`, `app.js` and `styles.css` are not loaded. Fonts are requ
 
 ## Checks and recovery
 
-The **Check card benefits** workflow checks all nine rates, the Cha Cha condition, DFC minimum spend, both copy buttons, seven logo loads, saved items, searches, tabs, dialogs and six viewport widths. Browser screenshots and results are in the workflow artifact. It does not place orders or test merchant checkout acceptance.
+`tools/test_card_benefits.py` checks all eight rates, Ace’s removal, the Cha Cha condition, DFC minimum spend, both copy buttons, eight logo loads, the supplied partner websites, saved items, searches, tabs, dialogs and six viewport widths. Browser screenshots and results are in the workflow artifact. It does not place orders or test merchant checkout acceptance.
 
 For publishing progress, open **Actions → pages build and deployment**. Use file history to restore an earlier revision if necessary. Keep the repository name unchanged to preserve printed QR codes.
