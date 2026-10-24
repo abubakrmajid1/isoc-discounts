@@ -1,0 +1,55 @@
+name: Inspect official partner logos
+on:
+  push:
+    branches: [partner-logo-correction-20261024]
+    paths: ['.github/workflows/inspect-partner-logos.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read official websites and logo assets
+        shell: python
+        run: |
+          import urllib.request, urllib.parse, pathlib, json, re
+          from html.parser import HTMLParser
+          root = pathlib.Path('partner-inspection'); root.mkdir()
+          report = {}
+          class Images(HTMLParser):
+            def __init__(self): super().__init__(); self.items=[]
+            def handle_starttag(self,tag,attrs):
+              a=dict(attrs)
+              if tag in ['img','link','meta']: self.items.append({'tag':tag,**a})
+          def fetch(u):
+            req=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0 (compatible; ISOC-directory-maintenance)'})
+            with urllib.request.urlopen(req,timeout=35) as r: return r.read(),r.headers.get('Content-Type',''),r.url
+          for name,url in [('jerk-hut','https://jerk-hut.co.uk/'),('foundry','https://thefoundrycafekitchen.co.uk/')]:
+            item={'website':url,'candidates':[]};report[name]=item
+            try:
+              raw,ctype,final=fetch(url); text=raw.decode('utf-8','replace')
+              (root/(name+'.html')).write_text(text)
+              parser=Images();parser.feed(text);item['tags']=parser.items;item['finalUrl']=final
+              candidates=[]
+              for a in parser.items:
+                src=a.get('src') or a.get('data-src') or ''
+                label=' '.join(str(v) for v in a.values()).lower()
+                if a['tag']=='img' and src and ('logo' in label or name in label): candidates.append(urllib.parse.urljoin(final,src))
+                if a['tag']=='link' and 'icon' in a.get('rel','') and a.get('href'): candidates.append(urllib.parse.urljoin(final,a['href']))
+                if a['tag']=='meta' and a.get('property')=='og:image': candidates.append(urllib.parse.urljoin(final,a.get('content','')))
+              candidates=list(dict.fromkeys(candidates))
+              for i,u in enumerate(candidates[:8]):
+                try:
+                  data,typ,asset=fetch(u)
+                  ext='.svg' if 'svg' in typ or b'<svg' in data[:2000] else '.png' if data[:8]==b'\x89PNG\r\n\x1a\n' else '.jpg' if data[:2]==b'\xff\xd8' else '.webp' if data[:4]==b'RIFF' else '.bin'
+                  filename=name+'-'+str(i)+ext;(root/filename).write_bytes(data)
+                  item['candidates'].append({'url':asset,'file':filename,'type':typ,'bytes':len(data)})
+                except Exception as e: item['candidates'].append({'url':u,'error':str(e)})
+              print(name,json.dumps(item,ensure_ascii=False))
+            except Exception as e: item['error']=str(e);print(name,e)
+          (root/'report.json').write_text(json.dumps(report,indent=2))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: partner-logo-inspection
+          path: partner-inspection/
+          retention-days: 7
